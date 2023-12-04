@@ -150,7 +150,7 @@ int main()
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-  std::cout << "Clock time: " << duration.count() << " ms" << std::endl;
+  std::cout << "Clock time: " << duration.count() << " us" << std::endl;
 
   return 0;
 }
