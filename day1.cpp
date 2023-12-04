@@ -1,73 +1,58 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
 
-using strings = std::vector<std::string>;
+using strings = const std::vector<std::string>;
 
 
-int check_pos(std::string line, int pos, strings digits, strings words)
-{
-  for (const strings& check : {digits, words})
-  {
-    for (unsigned int i = 0; i < check.size(); i++)
-    {
-      if (line.substr(pos, check[i].length()) == check[i])
-      {
-        return i;
-      }
-    }
-  }
-  return -1;
-}
-
-
-void solve(int part) {
-  int sum = 0;
+void solve() {
+  int p1 = 0;
+  int p2 = 0;
+  const std::string digits = "0123456789";
+  strings words = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
   std::ifstream f("1-input.txt");
   std::string line;
   if (f.is_open())
   {
-    if (part == 1)
+    while (std::getline(f, line))
     {
-      while (std::getline(f, line))
+      // Map from position to its associated integer value
+      std::map<size_t, unsigned int> positions;
+      // Add the first and last digits to the map, if found
+      size_t first_digit = line.find_first_of(digits);
+      size_t last_digit = line.find_last_of(digits);
+      // If first_digit is found, second_digit must also be found
+      if (first_digit != std::string::npos)
       {
-        sum += 10 * (line[line.find_first_of("1234567890")] - '0');
-        sum += line[line.find_last_of("1234567890")] - '0';
+        positions[first_digit] = line[first_digit] - '0';
+        positions[last_digit] = line[last_digit] - '0';
+        // Increment part 1 answer
+        p1 += 10 * positions[first_digit] + positions[last_digit];
       }
-    }
-    else
-    {
-      strings digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-      strings words = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-                       "nine"};
-      while (std::getline(f, line))
+      // Add each word's position to the map, if found
+      for (unsigned int i = 0; i < words.size(); i++)
       {
-        for (unsigned int pos = 0; pos < line.length(); pos++)
+        size_t pos = line.find(words[i]);
+        while (pos != std::string::npos)
         {
-          int val = check_pos(line, pos, digits, words);
-          if (val > -1)
-          {
-            sum += 10 * val;
-            break;
-          }
-        }
-        for (unsigned int pos = line.length() - 1; pos >= 0; pos--)
-        {
-          int val = check_pos(line, pos, digits, words);
-          if (val > -1)
-          {
-            sum += val;
-            break;
-          }
+          positions[pos] = i;
+          pos = line.find(words[i], pos + 1);
         }
       }
+      // Increment part 2 answer. Note that maps are sorted by key, so
+      // positions.begin()->second gives the value associated with the smallest
+      // position, while positions.rbegin()->second gives the value of the
+      // largest position.
+      p2 += 10 * positions.begin()->second + positions.rbegin()->second;
     }
   }
   f.close();
-  std::cout << "Part " << part << ": " << sum << std::endl;
+  std::cout << "Part 1: " << p1 << std::endl;
+  std::cout << "Part 2: " << p2 << std::endl;
 }
 
 
@@ -75,8 +60,7 @@ int main()
 {
   auto start = std::chrono::high_resolution_clock::now();
 
-  solve(1);
-  solve(2);
+  solve();
 
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
